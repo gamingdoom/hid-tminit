@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0
 /**
- * When connected to the machine, the Thrustmaster wheels appear as
- * a «generic» hid gamepad called "Thrustmaster FFB Wheel".
+ * When connected to the machine, the Thrustmaster wheels execpt the TMX
+ * appear as a «generic» hid gamepad called "Thrustmaster FFB Wheel".
+ *
+ * The Thrustmaster TMX appears as a hid gamepad called "Thrustmaster TMX GIP Racing Wheel"
  *
  * When in this mode not every functionality of the wheel, like the force feedback,
  * are available. To enable all functionalities of a Thrustmaster wheel we have to send
@@ -83,6 +85,7 @@ static void tminit_model_handler(struct urb *urb)
 {
 	struct hid_device *hdev = urb->context;
 	struct tm_wheel *tm_wheel = hid_get_drvdata(hdev);
+	uint8_t product_id = tm_wheel->usb_dev->descriptor.idProduct;
 	uint8_t model = 0;
 	int i, ret;
 	const struct tm_wheel_info *twi = 0;
@@ -101,14 +104,15 @@ static void tminit_model_handler(struct urb *urb)
 		return;
 	}
 
-	for (i = 0; i < tm_wheels_infos_length && !twi; i++)
-		if (tm_wheels_infos[i].model == model)
+	for (i = 0; i < tm_wheels_infos_length && !twi; i++) {
+		if (tm_wheels_infos[i].model == model && tm_wheels_infos[i].pid == product_id)
 			twi = tm_wheels_infos + i;
+	}
 
 	if (twi)
 		hid_info(hdev, "Wheel with model 0x%x is a %s\n", model, twi->wheel_name);
 	else {
-		hid_err(hdev, "Unknown wheel's model id 0x%x, unable to proceed further with wheel init\n", model);
+		hid_err(hdev, "Unknown Wheel. The Model is 0x%x and the Product ID is 0x%x. I am unable to proceed further with wheel init\n", model, product_id);
 		return;
 	}
 
@@ -126,6 +130,7 @@ static void tminit_model_handler(struct urb *urb)
 	ret = usb_submit_urb(tm_wheel->urb, GFP_ATOMIC);
 	if (ret)
 		hid_err(hdev, "Error %d while submitting the change URB. I am unable to initialize this wheel...\n", ret);
+
 }
 
 static void tminit_remove(struct hid_device *hdev)
@@ -143,7 +148,7 @@ static void tminit_remove(struct hid_device *hdev)
 }
 
 /**
- * Function called by HID when a hid Thrustmaster FFB wheel is connected to the host.
+ * Function called by HID when a generic Thrustmaster wheel is connected to the host.
  * This function starts the hid dev, tries to allocate the tm_wheel data structure and
  * finally send an USB CONTROL REQUEST to the wheel to get [what it seems to be] its
  * model type.
@@ -230,7 +235,8 @@ error0:
 }
 
 static const struct hid_device_id tminit_devices[] = {
-	{ HID_USB_DEVICE(0x044f, 0xb65d)},
+	{ HID_USB_DEVICE(0x044f, 0xb65d)},		// Thrustmaster FFB Wheel
+	{ HID_USB_DEVICE(0x044f, 0xb67e)},		// Thrustmaster TMX GIP Racing Wheel
 	{}
 };
 

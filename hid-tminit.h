@@ -28,31 +28,36 @@ static const unsigned int setup_arr_sizes[] = {
  */
 struct tm_wheel_info {
 	uint8_t model;
+
 	uint8_t attachment;
 
 	/**
 	 * See when the USB control out packet is prepared...
-	 * @TODO The TMX seems to require multiple control codes to switch.
+	 * The TMX seems to require multiple control codes to switch.
 	 */
 	uint16_t switch_value;
 
 	char const *const wheel_name;
+
+	uint16_t pid; // Product ID for the generic wheel
 };
 
 /**
  * Known wheels.
- * Note: TMX does not work as it requires 2 control packets
+ * Note: TMX requires 2 control packets
  */
 static const struct tm_wheel_info tm_wheels_infos[] = {
-	{0x03, 0x06, 0x0006, "Thrustmaster T150RS"},
-	{0x02, 0x06, 0x0005, "Thrustmaster T300RS"},
-	{0x02, 0x03, 0x0005, "Thrustmaster T300RS (F1 attachment)"},
-	{0x02, 0x04, 0x0005, "Thrustmaster T300 Ferrari Alcantara Edition"},
-	{0x00, 0x02, 0x0002, "Thrustmaster T500RS"},
-	{0x04, 0x07, 0x0001, "Thrustmaster TMX"}
+	{0x03, 0x06, 0x0006, "Thrustmaster T150RS", 0xb65d},
+	{0x02, 0x06, 0x0005, "Thrustmaster T300RS", 0xb65d},
+	{0x02, 0x03, 0x0005, "Thrustmaster T300RS (F1 attachment)", 0xb65d},
+	{0x02, 0x04, 0x0005, "Thrustmaster T300 Ferrari Alcantara Edition", 0xb65d},
+	{0x00, 0x02, 0x0002, "Thrustmaster T500RS", 0xb65d},
+	{0x04, 0x07, 0x0001, "Thrustmaster TMX", 0xb65d},
+	{0x04, 0x07, 0x0007, "Thrustmaster TMX", 0xb67e}
 };
 
-static const uint8_t tm_wheels_infos_length = 6;
+static const uint8_t tm_wheels_infos_length = 7;
+
 
 /**
  * This structs contains (in little endian) the response data
